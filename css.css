@@ -80,9 +80,10 @@ input:focus ~ .custom-cursor-ring, button:hover ~ .custom-cursor-ring, a:hover ~
 
 .noise-overlay {
   position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-  z-index: 1; pointer-events: none; opacity: 0.03;
+  z-index: 1; pointer-events: none !important; opacity: 0.03;
   background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E");
 }
+
 
 /* Typography Base */
 h1, h2, h3, h4, h5, .page-title { font-family: var(--font-heading); font-weight: 600; }
@@ -151,12 +152,13 @@ h1, h2, h3, h4, h5, .page-title { font-family: var(--font-heading); font-weight:
 @keyframes float { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-10px); } }
 
 .grid-overlay {
-  position: fixed; inset: 0; pointer-events: none; z-index: 1;
+  position: fixed; inset: 0; pointer-events: none !important; z-index: 1;
   background-image: linear-gradient(rgba(255,255,255,0.02) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.02) 1px, transparent 1px);
   background-size: 60px 60px;
   mask-image: radial-gradient(ellipse, black 40%, transparent 80%);
   -webkit-mask-image: radial-gradient(ellipse, black 40%, transparent 80%);
 }
+
 
 /* Cards Glassmorphism */
 .glass-card { 
@@ -399,7 +401,20 @@ textarea.form-control { resize: vertical; min-height: 90px; }
   background: var(--bg);
   scroll-behavior: smooth;
   transition: opacity 0.8s ease, transform 0.8s cubic-bezier(0.16, 1, 0.3, 1);
+  pointer-events: auto;
 }
+
+#landing-page * {
+  pointer-events: auto;
+}
+
+#landing-page button {
+  position: relative;
+  z-index: 10;
+  pointer-events: auto !important;
+  cursor: pointer !important;
+}
+
 
 .landing-nav {
   position: fixed;
@@ -1082,3 +1097,15 @@ textarea.form-control { resize: vertical; min-height: 90px; }
 @keyframes floatBubble { 0%,100% { transform:translateY(0) } 50% { transform:translateY(-10px) } }
 @keyframes shimmer { 0% { transform:translateX(-100%) } 100% { transform:translateX(100%) } }
 @keyframes pulse { 0%,100% { opacity:1 } 50% { opacity:0.4 } }
+/* --- LANDING INTERACTION FIXES --- */
+#aurora, .aurora, .aurora-blob, .blob,
+[style*="pointer-events:none"],
+.noise-overlay, #noise {
+  pointer-events: none !important;
+}
+
+/* Make sure the grid overlay doesn't block clicks */
+[style*="position:fixed"][style*="z-index:0"],
+[style*="position:fixed"][style*="z-index: 0"] {
+  pointer-events: none !important;
+}

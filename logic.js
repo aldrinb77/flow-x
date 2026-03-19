@@ -996,6 +996,8 @@ function getIconForCategory(cat) {
 }
 
 function openModal(id) { document.getElementById(id).classList.add('active'); }
+window.openModal = openModal;
+
 function closeModal(id) { document.getElementById(id).classList.remove('active'); }
 
 // Fix 5: Custom Confirmation Modal
@@ -2240,7 +2242,8 @@ function renderLandingForPlatform(platform) {
   if (existingSwitcher) existingSwitcher.remove();
   const switcher = document.createElement('div');
   switcher.id = 'platform-switcher';
-  switcher.style.cssText = 'position:fixed;bottom:24px;right:24px;z-index:999;display:flex;gap:8px;background:rgba(13,16,23,0.9);backdrop-filter:blur(20px);border:1px solid rgba(255,255,255,0.08);border-radius:12px;padding:8px';
+  switcher.style.cssText = 'position:fixed;bottom:24px;right:24px;z-index:50;display:flex;gap:8px;background:rgba(13,16,23,0.9);backdrop-filter:blur(20px);border:1px solid rgba(255,255,255,0.08);border-radius:12px;padding:8px;pointer-events:auto';
+
   switcher.innerHTML = `
     <button onclick="switchPlatform('desktop')" title="Desktop" style="background:${platform==='desktop'?'rgba(0,212,170,0.15)':'transparent'};border:${platform==='desktop'?'1px solid rgba(0,212,170,0.3)':'1px solid transparent'};color:${platform==='desktop'?'#00d4aa':'rgba(255,255,255,0.4)'};width:34px;height:34px;border-radius:8px;font-size:16px;cursor:pointer">🖥️</button>
     <button onclick="switchPlatform('tablet')"  title="Tablet"  style="background:${platform==='tablet'?'rgba(0,212,170,0.15)':'transparent'};border:${platform==='tablet'?'1px solid rgba(0,212,170,0.3)':'1px solid transparent'};color:${platform==='tablet'?'#00d4aa':'rgba(255,255,255,0.4)'};width:34px;height:34px;border-radius:8px;font-size:16px;cursor:pointer">⬛</button>
@@ -2264,12 +2267,13 @@ function renderDesktopLanding() {
   landing.innerHTML = `
     <!-- AURORA BACKGROUND -->
     <div style="position:fixed;inset:0;pointer-events:none;z-index:0;overflow:hidden">
-      <div style="position:absolute;width:700px;height:700px;background:radial-gradient(circle,#00d4aa,transparent);filter:blur(80px);opacity:0.07;top:-200px;left:-100px;animation:float 20s ease-in-out infinite;border-radius:50%"></div>
-      <div style="position:absolute;width:600px;height:600px;background:radial-gradient(circle,#a78bfa,transparent);filter:blur(80px);opacity:0.07;top:20%;right:-200px;animation:float 20s ease-in-out infinite 7s;border-radius:50%"></div>
-      <div style="position:absolute;width:500px;height:500px;background:radial-gradient(circle,#f59e0b,transparent);filter:blur(80px);opacity:0.07;bottom:-100px;left:30%;animation:float 20s ease-in-out infinite 14s;border-radius:50%"></div>
+      <div style="position:absolute;width:700px;height:700px;background:radial-gradient(circle,#00d4aa,transparent);filter:blur(80px);opacity:0.07;top:-200px;left:-100px;animation:float 20s ease-in-out infinite;border-radius:50%;pointer-events:none"></div>
+      <div style="position:absolute;width:600px;height:600px;background:radial-gradient(circle,#a78bfa,transparent);filter:blur(80px);opacity:0.07;top:20%;right:-200px;animation:float 20s ease-in-out infinite 7s;border-radius:50%;pointer-events:none"></div>
+      <div style="position:absolute;width:500px;height:500px;background:radial-gradient(circle,#f59e0b,transparent);filter:blur(80px);opacity:0.07;bottom:-100px;left:30%;animation:float 20s ease-in-out infinite 14s;border-radius:50%;pointer-events:none"></div>
       <!-- Subtle grid -->
-      <div style="position:absolute;inset:0;background-image:linear-gradient(rgba(255,255,255,0.015) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,0.015) 1px,transparent 1px);background-size:60px 60px;mask-image:radial-gradient(ellipse 80% 80% at 50% 50%,black 40%,transparent 100%)"></div>
+      <div style="position:absolute;inset:0;background-image:linear-gradient(rgba(255,255,255,0.015) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,0.015) 1px,transparent 1px);background-size:60px 60px;mask-image:radial-gradient(ellipse 80% 80% at 50% 50%,black 40%,transparent 100%);pointer-events:none"></div>
     </div>
+
 
     <!-- NAV -->
     <nav id="landing-nav" style="position:fixed;top:0;left:0;right:0;z-index:100;padding:0 60px;height:68px;display:flex;align-items:center;justify-content:space-between;transition:all 0.3s">
@@ -2497,9 +2501,10 @@ function renderTabletLanding() {
   if (!landing) return;
   landing.innerHTML = `
     <div style="position:fixed;inset:0;pointer-events:none;z-index:0;overflow:hidden">
-      <div style="position:absolute;width:500px;height:500px;background:radial-gradient(circle,#00d4aa,transparent);filter:blur(80px);opacity:0.07;top:-150px;left:-50px;border-radius:50%;animation:float 18s ease-in-out infinite"></div>
-      <div style="position:absolute;width:400px;height:400px;background:radial-gradient(circle,#a78bfa,transparent);filter:blur(80px);opacity:0.07;bottom:-100px;right:-50px;border-radius:50%;animation:float 18s ease-in-out infinite 9s"></div>
+      <div style="position:absolute;width:500px;height:500px;background:radial-gradient(circle,#00d4aa,transparent);filter:blur(80px);opacity:0.07;top:-150px;left:-50px;border-radius:50%;animation:float 18s ease-in-out infinite;pointer-events:none"></div>
+      <div style="position:absolute;width:400px;height:400px;background:radial-gradient(circle,#a78bfa,transparent);filter:blur(80px);opacity:0.07;bottom:-100px;right:-50px;border-radius:50%;animation:float 18s ease-in-out infinite 9s;pointer-events:none"></div>
     </div>
+
     <nav style="position:fixed;top:0;left:0;right:0;z-index:100;background:rgba(7,9,15,0.85);backdrop-filter:blur(16px);border-bottom:1px solid rgba(255,255,255,0.06);padding:0 32px;height:60px;display:flex;align-items:center;justify-content:space-between">
       <div style="font-family:Outfit,sans-serif;font-weight:800;font-size:20px">Flow<span style="color:#00d4aa">X</span></div>
       <div style="display:flex;gap:8px">
@@ -2529,9 +2534,10 @@ function renderMobileLanding() {
   if (!landing) return;
   landing.innerHTML = `
     <div style="position:fixed;inset:0;pointer-events:none;z-index:0">
-      <div style="position:absolute;width:350px;height:350px;background:radial-gradient(circle,#00d4aa,transparent);filter:blur(60px);opacity:0.08;top:-100px;left:-50px;border-radius:50%;animation:float 15s ease-in-out infinite"></div>
-      <div style="position:absolute;width:300px;height:300px;background:radial-gradient(circle,#a78bfa,transparent);filter:blur(60px);opacity:0.08;bottom:-50px;right:-50px;border-radius:50%;animation:float 15s ease-in-out infinite 7s"></div>
+      <div style="position:absolute;width:350px;height:350px;background:radial-gradient(circle,#00d4aa,transparent);filter:blur(60px);opacity:0.08;top:-100px;left:-50px;border-radius:50%;animation:float 15s ease-in-out infinite;pointer-events:none"></div>
+      <div style="position:absolute;width:300px;height:300px;background:radial-gradient(circle,#a78bfa,transparent);filter:blur(60px);opacity:0.08;bottom:-50px;right:-50px;border-radius:50%;animation:float 15s ease-in-out infinite 7s;pointer-events:none"></div>
     </div>
+
     <nav style="position:fixed;top:0;left:0;right:0;z-index:100;background:rgba(7,9,15,0.9);backdrop-filter:blur(16px);padding:0 20px;height:56px;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid rgba(255,255,255,0.06)">
       <div style="font-family:Outfit,sans-serif;font-weight:800;font-size:18px">Flow<span style="color:#00d4aa">X</span></div>
       <button onclick="openModal('loginModal')" style="background:transparent;border:1px solid rgba(255,255,255,0.1);color:rgba(255,255,255,0.7);padding:7px 16px;border-radius:8px;font-family:'DM Sans',sans-serif;font-size:13px;cursor:pointer">Sign In</button>
