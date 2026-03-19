@@ -7,6 +7,14 @@ function safeHide(id) {
   const el = document.getElementById(id);
   if (el) el.style.display = 'none';
 }
+function safeSetText(id, text) {
+  const el = document.getElementById(id);
+  if (el) el.textContent = text;
+}
+function safeSetHTML(id, html) {
+  const el = document.getElementById(id);
+  if (el) el.innerHTML = html;
+}
 
 // --- FIX 6: Defensive Coding ---
 
@@ -207,16 +215,32 @@ function showLandingPage() {
 
 
 
-function openAuth(tab = 'signin') {
-  switchAuthTab(tab);
-  const auth = document.getElementById('authScreen');
-  if (auth) {
-    auth.style.display = 'flex';
+function openAuth(mode = 'signup') {
+  const authScreen = document.getElementById('authScreen') || 
+                     document.getElementById('auth-screen') || 
+                     document.getElementById('auth-container');
+  if (authScreen) {
+    authScreen.style.display = 'flex';
+    // Switch between signin/signup tabs if tabs exist
+    if (mode === 'signin') {
+      const signinTab = document.getElementById('signinTab') || 
+                        document.querySelector('[data-tab="signin"]') ||
+                        document.getElementById('tabSignIn');
+      if (signinTab) signinTab.click();
+    } else {
+      const signupTab = document.getElementById('signupTab') || 
+                        document.querySelector('[data-tab="signup"]') ||
+                        document.getElementById('tabSignUp');
+      if (signupTab) signupTab.click();
+    }
     setTimeout(() => {
-      auth.style.opacity = '1';
-      auth.style.pointerEvents = 'auto';
-    }, 50);
+        authScreen.style.opacity = '1';
+        authScreen.style.pointerEvents = 'auto';
+    }, 500);
   }
+  // Hide landing page
+  const landing = document.getElementById('landing-page');
+  if (landing) landing.style.display = 'none';
 }
 
 
@@ -260,7 +284,7 @@ async function loadApp(user) {
     .on('postgres_changes', {
       event: '*', schema: 'public',
       table: 'transactions',
-      filter: `user_id=eq.${user.id}`
+      filter: `user_id=eq.${currentUser?.id}`
     }, (payload) => {
       loadData().then(() => {
         renderAllViews();
@@ -605,9 +629,9 @@ function renderView(view) {
     insights:      'renderInsights',
     accounts:      'renderAccounts',
     subscriptions: 'renderSubscriptions',
-    social:        'renderSocial',
-    reports:       'renderReports',
-    settings:      'renderSettings',
+    social:        'renderSocialView',
+    reports:       'renderReportsView',
+    settings:      'renderSettingsView',
     investments:   'renderInvestments',
   };
 
@@ -615,94 +639,28 @@ function renderView(view) {
   if (fnName && typeof window[fnName] === 'function') {
     window[fnName]();
   } else {
-    main.innerHTML = `
-      <div style="display:flex;flex-direction:column;align-items:center;justify-content:center;height:60vh;gap:16px;color:rgba(255,255,255,0.3)">
-        <div style="font-size:48px">🔧</div>
-        <div style="font-family:Outfit,sans-serif;font-size:20px;color:rgba(255,255,255,0.5)">${view.charAt(0).toUpperCase()+view.slice(1)}</div>
-        <div style="font-size:14px">Coming soon</div>
-      </div>`;
+    const main = document.getElementById('main-content');
+    if (main) {
+      main.innerHTML = `
+        <div style="display:flex;flex-direction:column;align-items:center;justify-content:center;height:60vh;gap:16px;color:rgba(255,255,255,0.3)">
+          <div style="font-size:48px">🔧</div>
+          <div style="font-family:Outfit,sans-serif;font-weight:600">View under construction</div>
+          <p style="font-size:13px">We are building the ${view} module.</p>
+        </div>`;
+    }
   }
 }
-
-function renderInsights() {
+function renderSocialView() {
   const main = document.getElementById('main-content');
   if (!main) return;
   main.innerHTML = `
     <div style="padding:24px">
-      <h2 style="font-family:Outfit,sans-serif;font-size:24px;margin-bottom:24px">Smart Insights</h2>
-      <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:16px" id="insights-grid">
-        <div class="glass-card" style="padding:20px;border-radius:16px">
-          <div style="font-size:11px;text-transform:uppercase;letter-spacing:0.08em;color:rgba(255,255,255,0.4);margin-bottom:8px">Savings Rate</div>
-          <div style="font-family:Outfit,sans-serif;font-size:32px;font-weight:700;color:#00d4aa" id="insight-savings-rate">—</div>
-          <div style="font-size:13px;color:rgba(255,255,255,0.5);margin-top:4px" id="insight-savings-label">Calculating...</div>
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:24px">
+        <h2 style="font-family:Outfit,sans-serif;font-size:24px">Social & Challenges</h2>
+        <div style="display:flex;gap:4px;background:rgba(255,255,255,0.04);padding:4px;border-radius:12px;border:1px solid rgba(255,255,255,0.06)">
+          <button onclick="showSocialTab('challenges')" id="tab-challenges" class="social-tab" style="background:rgba(0,212,170,0.1);border:none;color:#00d4aa;padding:6px 16px;border-radius:8px;font-family:'DM Sans',sans-serif;font-size:13px;cursor:pointer">Challenges</button>
+          <button onclick="showSocialTab('feed')" id="tab-feed" class="social-tab" style="background:transparent;border:none;color:rgba(255,255,255,0.4);padding:6px 16px;border-radius:8px;font-family:'DM Sans',sans-serif;font-size:13px;cursor:pointer">Feed</button>
         </div>
-        <div class="glass-card" style="padding:20px;border-radius:16px">
-          <div style="font-size:11px;text-transform:uppercase;letter-spacing:0.08em;color:rgba(255,255,255,0.4);margin-bottom:8px">Spending Velocity</div>
-          <div style="font-family:Outfit,sans-serif;font-size:32px;font-weight:700" id="insight-velocity">—</div>
-          <div style="font-size:13px;color:rgba(255,255,255,0.5);margin-top:4px" id="insight-velocity-label">vs last month</div>
-        </div>
-        <div class="glass-card" style="padding:20px;border-radius:16px">
-          <div style="font-size:11px;text-transform:uppercase;letter-spacing:0.08em;color:rgba(255,255,255,0.4);margin-bottom:8px">Month End Projection</div>
-          <div style="font-family:Outfit,sans-serif;font-size:32px;font-weight:700;color:#f59e0b;font-family:'DM Mono',monospace" id="insight-projection">—</div>
-          <div style="font-size:13px;color:rgba(255,255,255,0.5);margin-top:4px">at current spend rate</div>
-        </div>
-        <div class="glass-card" style="padding:20px;border-radius:16px">
-          <div style="font-size:11px;text-transform:uppercase;letter-spacing:0.08em;color:rgba(255,255,255,0.4);margin-bottom:8px">Best Spend Day</div>
-          <div style="font-family:Outfit,sans-serif;font-size:32px;font-weight:700;color:#a78bfa" id="insight-best-day">—</div>
-          <div style="font-size:13px;color:rgba(255,255,255,0.5);margin-top:4px">historically lowest spending</div>
-        </div>
-      </div>
-    </div>`;
-  loadInsightsData();
-}
-
-async function loadInsightsData() {
-  try {
-    if (!currentUser) return;
-    const now   = new Date();
-    const start = new Date(now.getFullYear(), now.getMonth(), 1).toISOString().split('T')[0];
-    const { data: txns } = await sb.from('transactions').select('*').eq('user_id', currentUser.id).gte('date', start);
-    if (!txns || txns.length === 0) return;
-
-    const income   = txns.filter(t => t.type === 'income').reduce((s,t) => s+t.amount, 0);
-    const expenses = txns.filter(t => t.type === 'expense').reduce((s,t) => s+t.amount, 0);
-    const rate     = income > 0 ? Math.round((income - expenses) / income * 100) : 0;
-
-    const srEl = document.getElementById('insight-savings-rate');
-    const slEl = document.getElementById('insight-savings-label');
-    if (srEl) srEl.textContent = rate + '%';
-    if (slEl) slEl.textContent = rate >= 20 ? '🟢 Excellent' : rate >= 10 ? '🟡 Fair' : '🔴 Needs improvement';
-
-    const daysGone  = now.getDate();
-    const daysTotal = new Date(now.getFullYear(), now.getMonth()+1, 0).getDate();
-    const projected = Math.round((expenses / daysGone) * daysTotal);
-    const pjEl = document.getElementById('insight-projection');
-    if (pjEl) pjEl.textContent = '₹' + projected.toLocaleString('en-IN');
-
-    const days = ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
-    const dayTotals = new Array(7).fill(0);
-    const dayCounts = new Array(7).fill(0);
-    txns.filter(t => t.type === 'expense').forEach(t => {
-      const d = new Date(t.date).getDay();
-      dayTotals[d] += t.amount;
-      dayCounts[d]++;
-    });
-    const dayAvgs  = dayTotals.map((t,i) => dayCounts[i] ? t/dayCounts[i] : Infinity);
-    const bestDay  = dayAvgs.indexOf(Math.min(...dayAvgs));
-    const bdEl = document.getElementById('insight-best-day');
-    if (bdEl) bdEl.textContent = days[bestDay];
-  } catch(e) { console.error('loadInsightsData:', e); }
-}
-
-function renderSocial() {
-  const main = document.getElementById('main-content');
-  if (!main) return;
-  main.innerHTML = `
-    <div style="padding:24px">
-      <h2 style="font-family:Outfit,sans-serif;font-size:24px;margin-bottom:24px">Social & Challenges</h2>
-      <div style="display:flex;gap:10px;margin-bottom:24px">
-        <button onclick="showSocialTab('challenges')" id="tab-challenges" style="background:rgba(0,212,170,0.1);border:1px solid rgba(0,212,170,0.3);color:#00d4aa;padding:8px 20px;border-radius:8px;font-family:'DM Sans',sans-serif;cursor:pointer">🏆 Challenges</button>
-        <button onclick="showSocialTab('tips')" id="tab-tips" style="background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.08);color:rgba(255,255,255,0.6);padding:8px 20px;border-radius:8px;font-family:'DM Sans',sans-serif;cursor:pointer">💡 Tips</button>
       </div>
       <div id="social-content"></div>
     </div>`;
@@ -712,47 +670,28 @@ function renderSocial() {
 function showSocialTab(tab) {
   const content = document.getElementById('social-content');
   if (!content) return;
+  
+  document.querySelectorAll('.social-tab').forEach(t => {
+    t.style.background = 'transparent';
+    t.style.color = 'rgba(255,255,255,0.4)';
+  });
+  const activeTab = document.getElementById('tab-' + tab);
+  if (activeTab) {
+    activeTab.style.background = 'rgba(0,212,170,0.1)';
+    activeTab.style.color = '#00d4aa';
+  }
+
   if (tab === 'challenges') {
-    const challenges = [
-      { emoji:'🚫', title:'No Spend Weekend', desc:"Don't spend on Sat/Sun", duration:'2 days', difficulty:'Easy', color:'#00d4aa' },
-      { emoji:'🍱', title:'Cook at Home Week', desc:'Food under ₹500 for 7 days', duration:'7 days', difficulty:'Medium', color:'#f59e0b' },
-      { emoji:'💰', title:'Save ₹1,000 This Week', desc:'Add ₹1,000 to any goal', duration:'7 days', difficulty:'Medium', color:'#a78bfa' },
-      { emoji:'📵', title:'No New Subscriptions', desc:"Don't add any subscription", duration:'30 days', difficulty:'Hard', color:'#ff4d6d' },
-      { emoji:'🎯', title:'Zero Waste Budget', desc:'End month with ₹0 unassigned', duration:'30 days', difficulty:'Hard', color:'#00d4aa' },
-    ];
-    content.innerHTML = `<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:16px">${
-      challenges.map(c => `
-        <div class="glass-card" style="padding:20px;border-radius:16px;border-left:3px solid ${c.color}">
-          <div style="font-size:32px;margin-bottom:10px">${c.emoji}</div>
-          <div style="font-family:Outfit,sans-serif;font-size:16px;font-weight:600;margin-bottom:6px">${c.title}</div>
-          <div style="font-size:13px;color:rgba(255,255,255,0.5);margin-bottom:12px">${c.desc}</div>
-          <div style="display:flex;gap:8px;margin-bottom:14px">
-            <span style="background:rgba(255,255,255,0.06);border-radius:20px;padding:3px 10px;font-size:11px;color:rgba(255,255,255,0.5)">${c.duration}</span>
-            <span style="background:rgba(255,255,255,0.06);border-radius:20px;padding:3px 10px;font-size:11px;color:${c.color}">${c.difficulty}</span>
-          </div>
-          <button onclick="joinChallenge('${c.title}')" style="width:100%;background:rgba(0,212,170,0.1);border:1px solid rgba(0,212,170,0.2);color:#00d4aa;padding:8px;border-radius:8px;font-family:'DM Sans',sans-serif;cursor:pointer;font-size:13px">Join Challenge</button>
-        </div>`).join('')
-    }</div>`;
+    renderChallenges();
   } else {
-    const tips = [
-      { cat:'Saving', title:'Follow the 50/30/20 rule', desc:'50% needs, 30% wants, 20% savings.' },
-      { cat:'Tax', title:'Max out 80C deductions', desc:'Invest ₹1.5L in PPF/ELSS to save ₹46,800 tax.' },
-      { cat:'Investing', title:'Start a SIP today', desc:'Even ₹500/month in Nifty 50 grows hugely over time.' },
-      { cat:'Emergency', title:'Build 6-month emergency fund', desc:'Keep 6 months expenses in a liquid fund.' },
-      { cat:'Budgeting', title:'Audit your subscriptions', desc:'Most people pay for forgotten subscriptions monthly.' },
-      { cat:'Saving', title:'Automate your savings', desc:'Auto-debit on salary day before you can spend it.' },
-    ];
-    const colors = { Saving:'#00d4aa', Tax:'#a78bfa', Investing:'#f59e0b', Emergency:'#ff4d6d', Budgeting:'#60a5fa' };
-    content.innerHTML = `<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:16px">${
-      tips.map(t => `
-        <div class="glass-card" style="padding:20px;border-radius:16px">
-          <span style="background:${colors[t.cat]||'#00d4aa'}22;color:${colors[t.cat]||'#00d4aa'};padding:3px 10px;border-radius:20px;font-size:11px;font-weight:600">${t.cat}</span>
-          <div style="font-family:Outfit,sans-serif;font-size:15px;font-weight:600;margin:10px 0 6px">${t.title}</div>
-          <div style="font-size:13px;color:rgba(255,255,255,0.5);line-height:1.6">${t.desc}</div>
-        </div>`).join('')
-    }</div>`;
+    content.innerHTML = `<div style="text-align:center;padding:80px;color:rgba(255,255,255,0.2)">
+      <div style="font-size:40px;margin-bottom:16px">💬</div>
+      <div>Social feed coming soon. Connect with friends to see their progress!</div>
+    </div>`;
   }
 }
+
+
 
 // Fix 7: Settings Persistence
 function updateAccessibility(type) {
@@ -763,6 +702,7 @@ function updateAccessibility(type) {
   saveProfileSettings();
 }
 
+
 async function saveProfileSettings() {
   if (!currentUser) return;
   const settings = {
@@ -772,38 +712,35 @@ async function saveProfileSettings() {
     reducedMotion: document.getElementById('reducedMotionToggle')?.checked
   };
   localStorage.setItem('flowx_settings', JSON.stringify(settings));
-  await sb.from('profiles').update({ settings_blob: settings }).eq('id', currentUser.id);
+  try {
+    await sb.from('profiles').update({ settings_blob: settings }).eq('id', currentUser.id);
+  } catch(e) { console.error('saveProfileSettings:', e); }
 }
 
 function loadLocalSettings() {
   const saved = localStorage.getItem('flowx_settings');
   if (saved) {
-    const s = JSON.parse(saved);
-    if (s.lang) {
-      document.getElementById('langSelect').value = s.lang;
-      // changeLanguage(); // Trigger if needed
-    }
-    if (s.fontScale) {
-       document.getElementById('fontScaleSelect').value = s.fontScale;
-       updateFontScale();
-    }
-    if (s.highContrast) {
-       document.getElementById('highContrastToggle').checked = true;
-       document.body.classList.add('high-contrast');
-    }
-    if (s.reducedMotion) {
-       document.getElementById('reducedMotionToggle').checked = true;
-       document.body.classList.add('reduced-motion');
-    }
+    try {
+        const s = JSON.parse(saved);
+        if (s.lang && document.getElementById('langSelect')) {
+          document.getElementById('langSelect').value = s.lang;
+        }
+        if (s.fontScale && document.getElementById('fontScaleSelect')) {
+           document.getElementById('fontScaleSelect').value = s.fontScale;
+           if (typeof window.updateFontScale === 'function') window.updateFontScale();
+        }
+        if (s.highContrast) {
+           const hc = document.getElementById('highContrastToggle');
+           if (hc) hc.checked = true;
+           document.body.classList.add('high-contrast');
+        }
+        if (s.reducedMotion) {
+           const rm = document.getElementById('reducedMotionToggle');
+           if (rm) rm.checked = true;
+           document.body.classList.add('reduced-motion');
+        }
+    } catch(e) { console.error('loadLocalSettings:', e); }
   }
-}
-async function joinChallenge(title) {
-
-  try {
-    if (!currentUser) { showToast('Sign in to join challenges', 'error'); return; }
-    await sb.from('challenge_participants').insert({ user_id: currentUser.id, challenge_id: title.toLowerCase().replace(/\s+/g,'-'), joined_at: new Date().toISOString() });
-    showToast('Challenge joined! Good luck 🎯', 'success');
-  } catch(e) { showToast('Could not join — try again', 'error'); }
 }
 
 function renderSubscriptions() {
@@ -2284,8 +2221,8 @@ function renderDesktopLanding() {
         <a href="#how" style="font-size:14px;color:rgba(255,255,255,0.6);text-decoration:none;transition:color 0.2s" onmouseover="this.style.color='white'" onmouseout="this.style.color='rgba(255,255,255,0.6)'">How it works</a>
       </div>
       <div style="display:flex;gap:10px">
-        <button onclick="openModal('loginModal')" style="background:transparent;border:1px solid rgba(255,255,255,0.12);color:rgba(255,255,255,0.7);padding:9px 22px;border-radius:8px;font-family:'DM Sans',sans-serif;font-size:14px;cursor:pointer;transition:all 0.2s" onmouseover="this.style.borderColor='rgba(255,255,255,0.3)';this.style.color='white'" onmouseout="this.style.borderColor='rgba(255,255,255,0.12)';this.style.color='rgba(255,255,255,0.7)'">Sign In</button>
-        <button onclick="openModal('signupModal')" style="background:linear-gradient(135deg,#00d4aa,#00b894);border:none;color:#07090f;padding:9px 22px;border-radius:8px;font-family:'DM Sans',sans-serif;font-size:14px;font-weight:600;cursor:pointer;transition:all 0.2s;box-shadow:0 0 20px rgba(0,212,170,0.2)" onmouseover="this.style.transform='translateY(-1px)';this.style.boxShadow='0 0 30px rgba(0,212,170,0.4)'" onmouseout="this.style.transform='';this.style.boxShadow='0 0 20px rgba(0,212,170,0.2)'">Get Started</button>
+        <button onclick="openAuth('signin')" style="background:transparent;border:1px solid rgba(255,255,255,0.12);color:rgba(255,255,255,0.7);padding:9px 22px;border-radius:8px;font-family:'DM Sans',sans-serif;font-size:14px;cursor:pointer;transition:all 0.2s" onmouseover="this.style.borderColor='rgba(255,255,255,0.3)';this.style.color='white'" onmouseout="this.style.borderColor='rgba(255,255,255,0.12)';this.style.color='rgba(255,255,255,0.7)'">Sign In</button>
+        <button onclick="openAuth('signup')" style="background:linear-gradient(135deg,#00d4aa,#00b894);border:none;color:#07090f;padding:9px 22px;border-radius:8px;font-family:'DM Sans',sans-serif;font-size:14px;font-weight:600;cursor:pointer;transition:all 0.2s;box-shadow:0 0 20px rgba(0,212,170,0.2)" onmouseover="this.style.transform='translateY(-1px)';this.style.boxShadow='0 0 30px rgba(0,212,170,0.4)'" onmouseout="this.style.transform='';this.style.boxShadow='0 0 20px rgba(0,212,170,0.2)'">Get Started</button>
       </div>
     </nav>
 
@@ -2305,7 +2242,7 @@ function renderDesktopLanding() {
           FlowX is a next-generation personal finance OS. Track every rupee, hit every goal, and get AI-powered advice — all in one place.
         </p>
         <div style="display:flex;gap:14px;align-items:center;margin-bottom:32px;flex-wrap:wrap">
-          <button onclick="openModal('signupModal')" style="background:linear-gradient(135deg,#00d4aa,#00b894);border:none;color:#07090f;padding:15px 36px;border-radius:12px;font-family:Outfit,sans-serif;font-size:17px;font-weight:700;cursor:pointer;box-shadow:0 0 40px rgba(0,212,170,0.3);transition:all 0.2s" onmouseover="this.style.transform='translateY(-3px)';this.style.boxShadow='0 0 60px rgba(0,212,170,0.5)'" onmouseout="this.style.transform='';this.style.boxShadow='0 0 40px rgba(0,212,170,0.3)'">Start for free →</button>
+          <button onclick="openAuth('signup')" style="background:linear-gradient(135deg,#00d4aa,#00b894);border:none;color:#07090f;padding:15px 36px;border-radius:12px;font-family:Outfit,sans-serif;font-size:17px;font-weight:700;cursor:pointer;box-shadow:0 0 40px rgba(0,212,170,0.3);transition:all 0.2s" onmouseover="this.style.transform='translateY(-3px)';this.style.boxShadow='0 0 60px rgba(0,212,170,0.5)'" onmouseout="this.style.transform='';this.style.boxShadow='0 0 40px rgba(0,212,170,0.3)'">Start for free →</button>
           <button onclick="document.getElementById('features').scrollIntoView({behavior:'smooth'})" style="background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.1);color:rgba(255,255,255,0.7);padding:15px 28px;border-radius:12px;font-family:'DM Sans',sans-serif;font-size:16px;cursor:pointer;transition:all 0.2s" onmouseover="this.style.borderColor='rgba(255,255,255,0.25)';this.style.color='white'" onmouseout="this.style.borderColor='rgba(255,255,255,0.1)';this.style.color='rgba(255,255,255,0.7)'">▶ See how it works</button>
         </div>
         <div style="display:flex;align-items:center;gap:12px">
@@ -2446,7 +2383,7 @@ function renderDesktopLanding() {
             <div style="font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:0.08em;color:rgba(255,255,255,0.4);margin-bottom:12px">${p.tier}</div>
             <div style="font-family:Outfit,sans-serif;font-size:40px;font-weight:800;margin-bottom:4px;line-height:1">${p.price}</div>
             <div style="font-size:13px;color:rgba(255,255,255,0.4);margin-bottom:24px">${p.sub}</div>
-            <button onclick="openModal('signupModal')" style="width:100%;padding:12px;border-radius:10px;font-family:'DM Sans',sans-serif;font-size:14px;font-weight:600;cursor:pointer;margin-bottom:20px;border:none;background:${p.featured?'linear-gradient(135deg,#00d4aa,#00b894)':'rgba(255,255,255,0.08)'};color:${p.featured?'#07090f':'white'};transition:all 0.2s">${p.btn}</button>
+            <button onclick="openAuth('signup')" style="width:100%;padding:12px;border-radius:10px;font-family:'DM Sans',sans-serif;font-size:14px;font-weight:600;cursor:pointer;margin-bottom:20px;border:none;background:${p.featured?'linear-gradient(135deg,#00d4aa,#00b894)':'rgba(255,255,255,0.08)'};color:${p.featured?'#07090f':'white'};transition:all 0.2s">${p.btn}</button>
             <ul style="list-style:none;display:flex;flex-direction:column;gap:10px">
               ${p.features.map(f=>`<li style="font-size:13px;color:rgba(255,255,255,0.6);display:flex;gap:8px;align-items:flex-start;padding-top:10px;border-top:1px solid rgba(255,255,255,0.05)"><span style="color:#00d4aa;font-weight:700">✓</span>${f}</li>`).join('')}
             </ul>
@@ -2458,7 +2395,7 @@ function renderDesktopLanding() {
     <section style="padding:100px 80px;text-align:center;position:relative;z-index:1">
       <h2 style="font-family:Outfit,sans-serif;font-size:clamp(32px,4vw,52px);font-weight:800;margin-bottom:16px;line-height:1.1">Your financial freedom<br>starts today</h2>
       <p style="font-size:16px;color:rgba(255,255,255,0.45);margin-bottom:36px">Free forever · No credit card · Cancel anytime</p>
-      <button onclick="openModal('signupModal')" style="background:linear-gradient(135deg,#00d4aa,#00b894);border:none;color:#07090f;padding:16px 44px;border-radius:12px;font-family:Outfit,sans-serif;font-size:18px;font-weight:700;cursor:pointer;box-shadow:0 0 50px rgba(0,212,170,0.3);transition:all 0.2s" onmouseover="this.style.transform='translateY(-3px)';this.style.boxShadow='0 0 70px rgba(0,212,170,0.5)'" onmouseout="this.style.transform='';this.style.boxShadow='0 0 50px rgba(0,212,170,0.3)'">Create Free Account →</button>
+      <button onclick="openAuth('signup')" style="background:linear-gradient(135deg,#00d4aa,#00b894);border:none;color:#07090f;padding:16px 44px;border-radius:12px;font-family:Outfit,sans-serif;font-size:18px;font-weight:700;cursor:pointer;box-shadow:0 0 50px rgba(0,212,170,0.3);transition:all 0.2s" onmouseover="this.style.transform='translateY(-3px)';this.style.boxShadow='0 0 70px rgba(0,212,170,0.5)'" onmouseout="this.style.transform='';this.style.boxShadow='0 0 50px rgba(0,212,170,0.3)'">Create Free Account →</button>
     </section>
 
     <!-- FOOTER -->
@@ -2508,16 +2445,16 @@ function renderTabletLanding() {
     <nav style="position:fixed;top:0;left:0;right:0;z-index:100;background:rgba(7,9,15,0.85);backdrop-filter:blur(16px);border-bottom:1px solid rgba(255,255,255,0.06);padding:0 32px;height:60px;display:flex;align-items:center;justify-content:space-between">
       <div style="font-family:Outfit,sans-serif;font-weight:800;font-size:20px">Flow<span style="color:#00d4aa">X</span></div>
       <div style="display:flex;gap:8px">
-        <button onclick="openModal('loginModal')" style="background:transparent;border:1px solid rgba(255,255,255,0.1);color:rgba(255,255,255,0.7);padding:8px 18px;border-radius:8px;font-family:'DM Sans',sans-serif;font-size:13px;cursor:pointer">Sign In</button>
-        <button onclick="openModal('signupModal')" style="background:linear-gradient(135deg,#00d4aa,#00b894);border:none;color:#07090f;padding:8px 18px;border-radius:8px;font-family:'DM Sans',sans-serif;font-size:13px;font-weight:600;cursor:pointer">Get Started</button>
+        <button onclick="openAuth('signin')" style="background:transparent;border:1px solid rgba(255,255,255,0.1);color:rgba(255,255,255,0.7);padding:8px 18px;border-radius:8px;font-family:'DM Sans',sans-serif;font-size:13px;cursor:pointer">Sign In</button>
+        <button onclick="openAuth('signup')" style="background:linear-gradient(135deg,#00d4aa,#00b894);border:none;color:#07090f;padding:8px 18px;border-radius:8px;font-family:'DM Sans',sans-serif;font-size:13px;font-weight:600;cursor:pointer">Get Started</button>
       </div>
     </nav>
     <section style="min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:80px 40px 60px;position:relative;z-index:1">
       <h1 style="font-family:Outfit,sans-serif;font-weight:800;font-size:clamp(36px,5vw,52px);line-height:1.05;letter-spacing:-0.02em;margin-bottom:20px">Your money,<br>finally <span style="background:linear-gradient(135deg,#00d4aa,#00f5c4);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text">in control.</span></h1>
       <p style="font-size:16px;color:rgba(255,255,255,0.5);margin-bottom:32px;max-width:500px;line-height:1.7">Track every rupee, hit every goal, and get AI-powered financial advice — all in one beautiful app.</p>
       <div style="display:flex;gap:12px;margin-bottom:40px">
-        <button onclick="openModal('signupModal')" style="background:linear-gradient(135deg,#00d4aa,#00b894);border:none;color:#07090f;padding:14px 30px;border-radius:10px;font-family:Outfit,sans-serif;font-size:16px;font-weight:700;cursor:pointer;box-shadow:0 0 30px rgba(0,212,170,0.25)">Start for free →</button>
-        <button onclick="openModal('loginModal')" style="background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.1);color:rgba(255,255,255,0.7);padding:14px 24px;border-radius:10px;font-family:'DM Sans',sans-serif;font-size:15px;cursor:pointer">Sign In</button>
+        <button onclick="openAuth('signup')" style="background:linear-gradient(135deg,#00d4aa,#00b894);border:none;color:#07090f;padding:14px 30px;border-radius:10px;font-family:Outfit,sans-serif;font-size:16px;font-weight:700;cursor:pointer;box-shadow:0 0 30px rgba(0,212,170,0.25)">Start for free →</button>
+        <button onclick="openAuth('signin')" style="background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.1);color:rgba(255,255,255,0.7);padding:14px 24px;border-radius:10px;font-family:'DM Sans',sans-serif;font-size:15px;cursor:pointer">Sign In</button>
       </div>
       <div style="display:grid;grid-template-columns:repeat(2,1fr);gap:14px;width:100%;max-width:600px">
         ${[['🤖','AI Assistant'],['📊','Analytics'],['🎯','Goal Tracking'],['💰','Smart Budgets'],['📱','SMS Parsing'],['🔒','Secure & Private']].map(([e,t])=>`
@@ -2540,7 +2477,7 @@ function renderMobileLanding() {
 
     <nav style="position:fixed;top:0;left:0;right:0;z-index:100;background:rgba(7,9,15,0.9);backdrop-filter:blur(16px);padding:0 20px;height:56px;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid rgba(255,255,255,0.06)">
       <div style="font-family:Outfit,sans-serif;font-weight:800;font-size:18px">Flow<span style="color:#00d4aa">X</span></div>
-      <button onclick="openModal('loginModal')" style="background:transparent;border:1px solid rgba(255,255,255,0.1);color:rgba(255,255,255,0.7);padding:7px 16px;border-radius:8px;font-family:'DM Sans',sans-serif;font-size:13px;cursor:pointer">Sign In</button>
+      <button onclick="openAuth('signin')" style="background:transparent;border:1px solid rgba(255,255,255,0.1);color:rgba(255,255,255,0.7);padding:7px 16px;border-radius:8px;font-family:'DM Sans',sans-serif;font-size:13px;cursor:pointer">Sign In</button>
     </nav>
     <section style="min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:70px 24px 100px;text-align:center;position:relative;z-index:1">
       <div style="display:inline-flex;align-items:center;gap:6px;background:rgba(0,212,170,0.08);border:1px solid rgba(0,212,170,0.2);padding:5px 12px;border-radius:16px;font-size:11px;font-weight:600;color:#00d4aa;margin-bottom:24px;text-transform:uppercase;letter-spacing:0.06em">
@@ -2575,13 +2512,13 @@ function renderMobileLanding() {
         Track every<br>rupee. Hit every<br><span style="background:linear-gradient(135deg,#00d4aa,#00f5c4);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text">goal.</span>
       </h1>
       <p style="font-size:15px;color:rgba(255,255,255,0.5);margin-bottom:32px;line-height:1.6;max-width:320px">Your personal AI finance OS. Free forever, no credit card needed.</p>
-      <button onclick="openModal('signupModal')" style="width:100%;max-width:320px;background:linear-gradient(135deg,#00d4aa,#00b894);border:none;color:#07090f;padding:16px;border-radius:12px;font-family:Outfit,sans-serif;font-size:17px;font-weight:700;cursor:pointer;box-shadow:0 0 30px rgba(0,212,170,0.3);margin-bottom:12px">Get Started Free →</button>
-      <div style="font-size:13px;color:rgba(255,255,255,0.35)">Already have an account? <a onclick="openModal('loginModal')" style="color:rgba(0,212,170,0.8);cursor:pointer;font-weight:500">Sign in</a></div>
+      <button onclick="openAuth('signup')" style="width:100%;max-width:320px;background:linear-gradient(135deg,#00d4aa,#00b894);border:none;color:#07090f;padding:16px;border-radius:12px;font-family:Outfit,sans-serif;font-size:17px;font-weight:700;cursor:pointer;box-shadow:0 0 30px rgba(0,212,170,0.3);margin-bottom:12px">Get Started Free →</button>
+      <div style="font-size:13px;color:rgba(255,255,255,0.35)">Already have an account? <a onclick="openAuth('signin')" style="color:rgba(0,212,170,0.8);cursor:pointer;font-weight:500">Sign in</a></div>
       <div style="margin-top:24px;font-size:12px;color:rgba(255,255,255,0.25)">Joined by 2,400+ users · 4.9★ rating · Free forever</div>
     </section>
     <!-- Sticky CTA bar at bottom on mobile -->
     <div id="mobile-sticky-cta" style="position:fixed;bottom:0;left:0;right:0;padding:12px 20px;background:rgba(7,9,15,0.95);backdrop-filter:blur(16px);border-top:1px solid rgba(255,255,255,0.06);z-index:200;display:none">
-      <button onclick="openModal('signupModal')" style="width:100%;background:linear-gradient(135deg,#00d4aa,#00b894);border:none;color:#07090f;padding:14px;border-radius:10px;font-family:Outfit,sans-serif;font-size:16px;font-weight:700;cursor:pointer">Get Started Free →</button>
+      <button onclick="openAuth('signup')" style="width:100%;background:linear-gradient(135deg,#00d4aa,#00b894);border:none;color:#07090f;padding:14px;border-radius:10px;font-family:Outfit,sans-serif;font-size:16px;font-weight:700;cursor:pointer">Get Started Free →</button>
     </div>`;
 
   // Show sticky CTA after scrolling past hero
@@ -3417,3 +3354,317 @@ function toggleSkeletons(show) {
         el.classList.toggle('loading', show);
     });
 }
+
+
+// --- Missing View Functions (Fix 4) ---
+
+function renderInsights() {
+  const main = document.getElementById('main-content');
+  if (!main) return;
+  main.innerHTML = `
+    <div style="padding:24px">
+      <h2 style="font-family:Outfit,sans-serif;font-size:24px;margin-bottom:24px">Smart Insights</h2>
+      <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:16px">
+        <div class="glass-card" style="padding:20px;border-radius:16px">
+          <div style="font-size:11px;text-transform:uppercase;letter-spacing:0.08em;color:rgba(255,255,255,0.4);margin-bottom:8px">Savings Rate</div>
+          <div id="ins-savings" style="font-family:Outfit,sans-serif;font-size:36px;font-weight:700;color:#00d4aa">—</div>
+          <div id="ins-savings-label" style="font-size:13px;color:rgba(255,255,255,0.4);margin-top:4px">Calculating...</div>
+        </div>
+        <div class="glass-card" style="padding:20px;border-radius:16px">
+          <div style="font-size:11px;text-transform:uppercase;letter-spacing:0.08em;color:rgba(255,255,255,0.4);margin-bottom:8px">Month End Projection</div>
+          <div id="ins-projection" style="font-family:'DM Mono',monospace;font-size:32px;font-weight:700;color:#f59e0b">—</div>
+          <div style="font-size:13px;color:rgba(255,255,255,0.4);margin-top:4px">at current spend rate</div>
+        </div>
+        <div class="glass-card" style="padding:20px;border-radius:16px">
+          <div style="font-size:11px;text-transform:uppercase;letter-spacing:0.08em;color:rgba(255,255,255,0.4);margin-bottom:8px">Spending Velocity</div>
+          <div id="ins-velocity" style="font-family:Outfit,sans-serif;font-size:32px;font-weight:700">—</div>
+          <div id="ins-velocity-label" style="font-size:13px;color:rgba(255,255,255,0.4);margin-top:4px">vs last month</div>
+        </div>
+        <div class="glass-card" style="padding:20px;border-radius:16px">
+          <div style="font-size:11px;text-transform:uppercase;letter-spacing:0.08em;color:rgba(255,255,255,0.4);margin-bottom:8px">Best Day to Spend</div>
+          <div id="ins-best-day" style="font-family:Outfit,sans-serif;font-size:32px;font-weight:700;color:#a78bfa">—</div>
+          <div style="font-size:13px;color:rgba(255,255,255,0.4);margin-top:4px">historically lowest spending</div>
+        </div>
+      </div>
+    </div>`;
+  loadInsightsData();
+}
+
+async function loadInsightsData() {
+  if (!currentUser) return;
+  try {
+    const now   = new Date();
+    const start = new Date(now.getFullYear(), now.getMonth(), 1).toISOString().split('T')[0];
+    const { data: txns } = await sb.from('transactions').select('*').eq('user_id', currentUser.id).gte('date', start);
+    if (!txns || txns.length === 0) return;
+    const income   = txns.filter(t=>t.type==='income').reduce((s,t)=>s+t.amount,0);
+    const expenses = txns.filter(t=>t.type==='expense').reduce((s,t)=>s+t.amount,0);
+    const rate     = income > 0 ? Math.round((income-expenses)/income*100) : 0;
+    const savEl    = document.getElementById('ins-savings');
+    const savLbl   = document.getElementById('ins-savings-label');
+    if (savEl)  savEl.textContent  = rate + '%';
+    if (savLbl) savLbl.textContent = rate>=20?'🟢 Excellent':rate>=10?'🟡 Fair':'🔴 Needs improvement';
+    const days      = now.getDate();
+    const totalDays = new Date(now.getFullYear(),now.getMonth()+1,0).getDate();
+    const projected = Math.round((expenses/days)*totalDays);
+    const projEl    = document.getElementById('ins-projection');
+    if (projEl) projEl.textContent = '₹'+projected.toLocaleString('en-IN');
+    const dayNames  = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
+    const dayTotals = new Array(7).fill(0);
+    const dayCounts = new Array(7).fill(0);
+    txns.filter(t=>t.type==='expense').forEach(t=>{const d=new Date(t.date).getDay();dayTotals[d]+=t.amount;dayCounts[d]++;});
+    const avgs    = dayTotals.map((t,i)=>dayCounts[i]?t/dayCounts[i]:Infinity);
+    const best    = avgs.indexOf(Math.min(...avgs));
+    const bestEl  = document.getElementById('ins-best-day');
+    if (bestEl) bestEl.textContent = dayNames[best] || '—';
+  } catch(e) { console.error('loadInsightsData:', e); }
+}
+
+function renderAccounts() {
+  const main = document.getElementById('main-content');
+  if (!main) return;
+  main.innerHTML = `
+    <div style="padding:24px">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:24px">
+        <h2 style="font-family:Outfit,sans-serif;font-size:24px">Accounts</h2>
+        <button onclick="openAddAccountModal()" style="background:linear-gradient(135deg,#00d4aa,#00b894);border:none;color:#07090f;padding:10px 20px;border-radius:10px;font-family:'DM Sans',sans-serif;font-weight:600;cursor:pointer">+ Add Account</button>
+      </div>
+      <div id="accounts-list" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:16px">
+        <div style="text-align:center;padding:60px;color:rgba(255,255,255,0.3);grid-column:1/-1">
+          <div style="font-size:48px;margin-bottom:16px">🏦</div>
+          <div style="font-size:16px;margin-bottom:8px">No accounts yet</div>
+          <div style="font-size:13px">Add your bank accounts, cash, and wallets to track your net worth</div>
+        </div>
+      </div>
+    </div>`;
+  loadAccounts();
+}
+
+async function loadAccounts() {
+  if (!currentUser) return;
+  try {
+    const { data } = await sb.from('accounts').select('*').eq('user_id', currentUser.id);
+    const list = document.getElementById('accounts-list');
+    if (!list) return;
+    if (!data || data.length === 0) return;
+    const typeIcons = { savings:'🏦', current:'🏛️', cash:'💵', upi:'📱', credit:'💳', fd:'📈' };
+    list.innerHTML = data.map(a=>`
+      <div class="glass-card" style="padding:20px;border-radius:16px">
+        <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:12px">
+          <div style="font-size:28px">${typeIcons[a.type?.toLowerCase()]||'🏦'}</div>
+          <div style="font-size:11px;background:rgba(0,212,170,0.1);color:#00d4aa;padding:3px 10px;border-radius:20px;text-transform:uppercase">${a.type||'Account'}</div>
+        </div>
+        <div style="font-family:Outfit,sans-serif;font-size:16px;font-weight:600;margin-bottom:4px">${a.name}</div>
+        <div style="font-size:12px;color:rgba(255,255,255,0.4);margin-bottom:12px">${a.bank_name||''} ${a.last_four?'••••'+a.last_four:''}</div>
+        <div style="font-family:'DM Mono',monospace;font-size:24px;font-weight:700;color:${(a.balance||0)>=0?'#00d4aa':'#ff4d6d'}">₹${(a.balance||0).toLocaleString('en-IN')}</div>
+      </div>`).join('');
+  } catch(e) { console.error('loadAccounts:', e); }
+}
+
+function openAddAccountModal() {
+  const existing = document.getElementById('add-account-modal');
+  if (existing) existing.remove();
+  const modal = document.createElement('div');
+  modal.id = 'add-account-modal';
+  modal.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.6);z-index:1000;display:flex;align-items:center;justify-content:center;backdrop-filter:blur(8px)';
+  modal.innerHTML = `
+    <div style="background:#0d1017;border:1px solid rgba(255,255,255,0.08);border-radius:24px;padding:32px;width:400px;max-width:95vw">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:24px">
+        <h3 style="font-family:Outfit,sans-serif;font-size:20px">Add Account</h3>
+        <button onclick="document.getElementById('add-account-modal').remove()" style="background:rgba(255,255,255,0.06);border:none;color:white;width:32px;height:32px;border-radius:50%;cursor:pointer">×</button>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:14px">
+        <input id="acc-name" placeholder="Account name (e.g. SBI Savings)" style="background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.08);border-radius:10px;padding:11px 14px;color:white;font-family:'DM Sans',sans-serif;font-size:14px;outline:none">
+        <select id="acc-type" style="background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.08);border-radius:10px;padding:11px 14px;color:white;font-family:'DM Sans',sans-serif;font-size:14px;outline:none">
+          <option value="savings">Savings Account</option>
+          <option value="current">Current Account</option>
+          <option value="cash">Cash</option>
+          <option value="upi">UPI Wallet</option>
+          <option value="credit">Credit Card</option>
+          <option value="fd">Fixed Deposit</option>
+        </select>
+        <input id="acc-bank" placeholder="Bank name (e.g. SBI)" style="background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.08);border-radius:10px;padding:11px 14px;color:white;font-family:'DM Sans',sans-serif;font-size:14px;outline:none">
+        <input id="acc-balance" type="number" placeholder="Current balance (₹)" style="background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.08);border-radius:10px;padding:11px 14px;color:white;font-family:'DM Mono',monospace;font-size:16px;outline:none">
+        <button onclick="saveAccount()" style="background:linear-gradient(135deg,#00d4aa,#00b894);border:none;color:#07090f;padding:13px;border-radius:10px;font-family:'DM Sans',sans-serif;font-weight:600;font-size:15px;cursor:pointer">Save Account</button>
+      </div>
+    </div>`;
+  document.body.appendChild(modal);
+  modal.addEventListener('click', e=>{ if(e.target===modal) modal.remove(); });
+}
+
+async function saveAccount() {
+  const name    = document.getElementById('acc-name')?.value?.trim();
+  const type    = document.getElementById('acc-type')?.value;
+  const bank    = document.getElementById('acc-bank')?.value?.trim();
+  const balance = parseFloat(document.getElementById('acc-balance')?.value) || 0;
+  if (!name) { showToast('Please enter an account name', 'error'); return; }
+  try {
+    await sb.from('accounts').insert({ user_id: currentUser.id, name, type, bank_name: bank, balance });
+    showToast('Account added ✓', 'success');
+    document.getElementById('add-account-modal')?.remove();
+    renderAccounts();
+  } catch(e) { showToast('Could not save account: '+e.message, 'error'); }
+}
+
+function renderInvestments() {
+  const main = document.getElementById('main-content');
+  if (!main) return;
+  main.innerHTML = `
+    <div style="padding:24px">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:24px">
+        <h2 style="font-family:Outfit,sans-serif;font-size:24px">Investments</h2>
+        <button onclick="openAddInvestmentModal()" style="background:linear-gradient(135deg,#00d4aa,#00b894);border:none;color:#07090f;padding:10px 20px;border-radius:10px;font-family:'DM Sans',sans-serif;font-weight:600;cursor:pointer">+ Add Investment</button>
+      </div>
+      <div id="investments-list" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:16px">
+        <div style="text-align:center;padding:60px;color:rgba(255,255,255,0.3);grid-column:1/-1">
+          <div style="font-size:48px;margin-bottom:16px">📈</div>
+          <div style="font-size:16px;margin-bottom:8px">No investments tracked</div>
+          <div style="font-size:13px">Add your stocks, mutual funds, FDs and more</div>
+        </div>
+      </div>
+    </div>`;
+  loadInvestments();
+}
+
+async function loadInvestments() {
+  if (!currentUser) return;
+  try {
+    const { data } = await sb.from('investments').select('*').eq('user_id', currentUser.id);
+    const list = document.getElementById('investments-list');
+    if (!list || !data || data.length === 0) return;
+    const typeIcons = { stocks:'📊', 'mutual fund':'💼', fd:'🏛️', ppf:'🏦', nps:'🎯', crypto:'🪙', gold:'🥇', other:'📦' };
+    const totalInvested = data.reduce((s,i)=>s+(i.invested||0),0);
+    const totalCurrent  = data.reduce((s,i)=>s+(i.current_value||0),0);
+    const totalPnl      = totalCurrent - totalInvested;
+    const totalPnlPct   = totalInvested>0 ? ((totalPnl/totalInvested)*100).toFixed(1) : 0;
+    list.innerHTML = `
+      <div class="glass-card" style="padding:20px;border-radius:16px;grid-column:1/-1;display:flex;gap:32px;flex-wrap:wrap">
+        <div><div style="font-size:11px;color:rgba(255,255,255,0.4);text-transform:uppercase;margin-bottom:4px">Total Invested</div><div style="font-family:'DM Mono',monospace;font-size:24px;font-weight:700">₹${totalInvested.toLocaleString('en-IN')}</div></div>
+        <div><div style="font-size:11px;color:rgba(255,255,255,0.4);text-transform:uppercase;margin-bottom:4px">Current Value</div><div style="font-family:'DM Mono',monospace;font-size:24px;font-weight:700;color:#00d4aa">₹${totalCurrent.toLocaleString('en-IN')}</div></div>
+        <div><div style="font-size:11px;color:rgba(255,255,255,0.4);text-transform:uppercase;margin-bottom:4px">Total P&L</div><div style="font-family:'DM Mono',monospace;font-size:24px;font-weight:700;color:${totalPnl>=0?'#00d4aa':'#ff4d6d'}">${totalPnl>=0?'+':''}₹${Math.abs(totalPnl).toLocaleString('en-IN')} (${totalPnlPct}%)</div></div>
+      </div>
+      ${data.map(inv=>{
+        const pnl    = (inv.current_value||0)-(inv.invested||0);
+        const pnlPct = inv.invested>0?((pnl/inv.invested)*100).toFixed(1):0;
+        return `<div class="glass-card" style="padding:20px;border-radius:16px">
+          <div style="display:flex;justify-content:space-between;margin-bottom:12px">
+            <span style="font-size:24px">${typeIcons[inv.type?.toLowerCase()]||'📦'}</span>
+            <span style="font-size:11px;background:rgba(255,255,255,0.06);padding:3px 10px;border-radius:20px;color:rgba(255,255,255,0.5);text-transform:uppercase">${inv.type||'Other'}</span>
+          </div>
+          <div style="font-family:Outfit,sans-serif;font-size:16px;font-weight:600;margin-bottom:4px">${inv.name}</div>
+          <div style="font-size:12px;color:rgba(255,255,255,0.4);margin-bottom:12px">Since ${inv.purchase_date||'—'}</div>
+          <div style="display:flex;justify-content:space-between;align-items:center">
+            <div><div style="font-size:11px;color:rgba(255,255,255,0.4)">Invested</div><div style="font-family:'DM Mono',monospace;font-size:14px">₹${(inv.invested||0).toLocaleString('en-IN')}</div></div>
+            <div style="text-align:right"><div style="font-size:11px;color:rgba(255,255,255,0.4)">Current</div><div style="font-family:'DM Mono',monospace;font-size:14px;color:${pnl>=0?'#00d4aa':'#ff4d6d'}">₹${(inv.current_value||0).toLocaleString('en-IN')}</div></div>
+          </div>
+          <div style="margin-top:10px;font-family:'DM Mono',monospace;font-size:13px;font-weight:700;color:${pnl>=0?'#00d4aa':'#ff4d6d'};text-align:center;background:${pnl>=0?'rgba(0,212,170,0.08)':'rgba(255,77,109,0.08)'};padding:6px;border-radius:8px">${pnl>=0?'+':''}₹${Math.abs(pnl).toLocaleString('en-IN')} (${pnl>=0?'+':''}${pnlPct}%)</div>
+        </div>`;}).join('')}`;
+  } catch(e) { console.error('loadInvestments:', e); }
+}
+
+function openAddInvestmentModal() {
+  const existing = document.getElementById('add-inv-modal');
+  if (existing) existing.remove();
+  const modal = document.createElement('div');
+  modal.id = 'add-inv-modal';
+  modal.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.6);z-index:1000;display:flex;align-items:center;justify-content:center;backdrop-filter:blur(8px)';
+  modal.innerHTML = `
+    <div style="background:#0d1017;border:1px solid rgba(255,255,255,0.08);border-radius:24px;padding:32px;width:400px;max-width:95vw">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:24px">
+        <h3 style="font-family:Outfit,sans-serif;font-size:20px">Add Investment</h3>
+        <button onclick="document.getElementById('add-inv-modal').remove()" style="background:rgba(255,255,255,0.06);border:none;color:white;width:32px;height:32px;border-radius:50%;cursor:pointer">×</button>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:14px">
+        <input id="inv-name" placeholder="Name (e.g. Nifty 50 Index Fund)" style="background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.08);border-radius:10px;padding:11px 14px;color:white;font-family:'DM Sans',sans-serif;font-size:14px;outline:none">
+        <select id="inv-type" style="background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.08);border-radius:10px;padding:11px 14px;color:white;font-family:'DM Sans',sans-serif;font-size:14px;outline:none">
+          <option value="Stocks">Stocks</option>
+          <option value="Mutual Fund">Mutual Fund</option>
+          <option value="FD">Fixed Deposit</option>
+          <option value="PPF">PPF</option>
+          <option value="NPS">NPS</option>
+          <option value="Crypto">Crypto</option>
+          <option value="Gold">Gold</option>
+          <option value="Other">Other</option>
+        </select>
+        <input id="inv-invested" type="number" placeholder="Amount invested (₹)" style="background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.08);border-radius:10px;padding:11px 14px;color:white;font-family:'DM Mono',monospace;font-size:16px;outline:none">
+        <input id="inv-current" type="number" placeholder="Current value (₹)" style="background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.08);border-radius:10px;padding:11px 14px;color:white;font-family:'DM Mono',monospace;font-size:16px;outline:none">
+        <input id="inv-date" type="date" style="background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.08);border-radius:10px;padding:11px 14px;color:white;font-family:'DM Sans',sans-serif;font-size:14px;outline:none">
+        <button onclick="saveInvestment()" style="background:linear-gradient(135deg,#00d4aa,#00b894);border:none;color:#07090f;padding:13px;border-radius:10px;font-family:'DM Sans',sans-serif;font-weight:600;font-size:15px;cursor:pointer">Save Investment</button>
+      </div>
+    </div>`;
+  document.body.appendChild(modal);
+  modal.addEventListener('click', e=>{ if(e.target===modal) modal.remove(); });
+}
+
+async function saveInvestment() {
+  const name     = document.getElementById('inv-name')?.value?.trim();
+  const type     = document.getElementById('inv-type')?.value;
+  const invested = parseFloat(document.getElementById('inv-invested')?.value)||0;
+  const current  = parseFloat(document.getElementById('inv-current')?.value)||0;
+  const date     = document.getElementById('inv-date')?.value;
+  if (!name||!invested) { showToast('Please fill name and invested amount','error'); return; }
+  try {
+    await sb.from('investments').insert({ user_id:currentUser.id, name, type, invested, current_value:current, purchase_date:date||null });
+    showToast('Investment added ✓','success');
+    document.getElementById('add-inv-modal')?.remove();
+    renderInvestments();
+  } catch(e) { showToast('Could not save: '+e.message,'error'); }
+}
+
+function renderChallenges() {
+  const main = document.getElementById('main-content') || document.getElementById('social-content');
+  if (!main) return;
+  const challenges = [
+    {id:'no-spend-weekend',emoji:'🚫',title:'No Spend Weekend',desc:"Don't spend on Sat/Sun",duration:'2 days',difficulty:'Easy',color:'#00d4aa'},
+    {id:'cook-at-home',emoji:'🍱',title:'Cook at Home Week',desc:'Food under ₹500 for 7 days',duration:'7 days',difficulty:'Medium',color:'#f59e0b'},
+    {id:'save-1000',emoji:'💰',title:'Save ₹1,000 This Week',desc:'Add ₹1,000 to any goal',duration:'7 days',difficulty:'Medium',color:'#a78bfa'},
+    {id:'no-subs',emoji:'📵',title:'No New Subscriptions',desc:"Don't add any subscription this month",duration:'30 days',difficulty:'Hard',color:'#ff4d6d'},
+    {id:'zero-waste',emoji:'🎯',title:'Zero Waste Budget',desc:'End month with ₹0 unassigned',duration:'30 days',difficulty:'Hard',color:'#00d4aa'},
+  ];
+  main.innerHTML = `<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:16px">${
+    challenges.map(c=>`
+      <div class="glass-card" style="padding:20px;border-radius:16px;border-left:3px solid ${c.color}">
+        <div style="font-size:32px;margin-bottom:10px">${c.emoji}</div>
+        <div style="font-family:Outfit,sans-serif;font-size:16px;font-weight:600;margin-bottom:6px">${c.title}</div>
+        <div style="font-size:13px;color:rgba(255,255,255,0.5);margin-bottom:12px">${c.desc}</div>
+        <div style="display:flex;gap:8px;margin-bottom:14px">
+          <span style="background:rgba(255,255,255,0.06);border-radius:20px;padding:3px 10px;font-size:11px;color:rgba(255,255,255,0.5)">${c.duration}</span>
+          <span style="background:rgba(255,255,255,0.06);border-radius:20px;padding:3px 10px;font-size:11px;color:${c.color}">${c.difficulty}</span>
+        </div>
+        <button onclick="joinChallenge('${c.id}')" style="width:100%;background:rgba(0,212,170,0.1);border:1px solid rgba(0,212,170,0.2);color:#00d4aa;padding:8px;border-radius:8px;font-family:'DM Sans',sans-serif;cursor:pointer;font-size:13px">Join Challenge</button>
+      </div>`).join('')
+  }</div>`;
+}
+
+async function joinChallenge(challengeId) {
+  if (!currentUser) { showToast('Sign in to join challenges','error'); return; }
+  try {
+    await sb.from('challenge_participants').insert({ user_id:currentUser.id, challenge_id:challengeId, joined_at:new Date().toISOString() });
+    showToast('Challenge joined! Good luck 🎯','success');
+  } catch(e) { showToast('Could not join — try again','error'); }
+}
+
+// Fix: Bottom Window Scope Exposure
+window.openAuth = openAuth;
+window.closeAuth = closeAuth;
+window.renderView = renderView;
+window.switchView = switchView;
+window.openAddAccountModal = openAddAccountModal;
+window.saveAccount = saveAccount;
+window.openAddInvestmentModal = openAddInvestmentModal;
+window.saveInvestment = saveInvestment;
+window.joinChallenge = joinChallenge;
+window.renderSocialView = renderSocialView;
+window.showSocialTab = showSocialTab;
+window.renderInsights = renderInsights;
+window.renderAccounts = renderAccounts;
+window.renderInvestments = renderInvestments;
+window.renderChallenges = renderChallenges;
+window.safeShow = safeShow;
+window.safeHide = safeHide;
+window.safeCall = safeCall;
+window.openModal = (id) => { 
+  if (id === 'loginModal') openAuth('signin');
+  else if (id === 'signupModal') openAuth('signup');
+  // fallback for any other modal calls
+};
