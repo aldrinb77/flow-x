@@ -1,4 +1,15 @@
+// Fix: Core Stability (Phase 13)
+function safeShow(id, display = 'block') {
+  const el = document.getElementById(id);
+  if (el) el.style.display = display;
+}
+function safeHide(id) {
+  const el = document.getElementById(id);
+  if (el) el.style.display = 'none';
+}
+
 // --- FIX 6: Defensive Coding ---
+
 window.addEventListener('error', (e) => {
   console.error('FlowX caught error:', e.message, 'at', e.filename, ':', e.lineno);
   if (e.message && e.message.includes('is not defined')) {
@@ -180,45 +191,67 @@ document.addEventListener('DOMContentLoaded', async () => {
 
 // --- Auth System ---
 function showLandingPage() {
-  document.getElementById('landingPage').style.display = 'block';
-  setTimeout(() => document.getElementById('landingPage').style.opacity = '1', 50);
-  document.getElementById('authScreen').style.opacity = '0';
-  document.getElementById('authScreen').style.pointerEvents = 'none';
-  document.getElementById('mainApp').style.display = 'none';
-  document.getElementById('mainApp').style.opacity = '0';
+  const lp = document.getElementById('landing-page');
+  if (lp) {
+    lp.style.display = 'block';
+    setTimeout(() => lp.style.opacity = '1', 50);
+  }
+  const auth = document.getElementById('authScreen');
+  if (auth) {
+    auth.style.opacity = '0';
+    auth.style.pointerEvents = 'none';
+  }
+  safeHide('mainApp');
   hideAppLoader();
 }
 
 
+
 function openAuth(tab = 'signin') {
   switchAuthTab(tab);
-  document.getElementById('authScreen').style.display = 'flex';
-  setTimeout(() => {
-    document.getElementById('authScreen').style.opacity = '1';
-    document.getElementById('authScreen').style.pointerEvents = 'auto';
-  }, 50);
+  const auth = document.getElementById('authScreen');
+  if (auth) {
+    auth.style.display = 'flex';
+    setTimeout(() => {
+      auth.style.opacity = '1';
+      auth.style.pointerEvents = 'auto';
+    }, 50);
+  }
 }
 
+
 function closeAuth() {
-  document.getElementById('authScreen').style.opacity = '0';
-  document.getElementById('authScreen').style.pointerEvents = 'none';
-  setTimeout(() => document.getElementById('authScreen').style.display = 'none', 500);
+  const auth = document.getElementById('authScreen');
+  if (auth) {
+    auth.style.opacity = '0';
+    auth.style.pointerEvents = 'none';
+    setTimeout(() => auth.style.display = 'none', 500);
+  }
 }
+
 
 async function loadApp(user) {
   currentUser = user;
   
   // Fade out landing/auth
-  document.getElementById('landingPage').style.opacity = '0';
-  document.getElementById('authScreen').style.opacity = '0';
-  document.getElementById('authScreen').style.pointerEvents = 'none';
+  const lp = document.getElementById('landing-page');
+  if (lp) lp.style.opacity = '0';
+  
+  const auth = document.getElementById('authScreen');
+  if (auth) {
+    auth.style.opacity = '0';
+    auth.style.pointerEvents = 'none';
+  }
   
   setTimeout(() => {
-    document.getElementById('landingPage').style.display = 'none';
+    safeHide('landing-page');
     const mainApp = document.getElementById('mainApp');
-    mainApp.style.display = 'flex';
-    setTimeout(() => mainApp.style.opacity = '1', 50);
+    if (mainApp) {
+      mainApp.style.display = 'flex';
+      setTimeout(() => mainApp.style.opacity = '1', 50);
+    }
   }, 600);
+
   
   await loadData(); // Now fetches from Supabase
   
@@ -2109,15 +2142,19 @@ async function sendChatMsg() {
   const msgContainer = document.getElementById('chatMessages');
   const indicator = document.getElementById('typingIndicator');
   
-  indicator.style.display = 'flex';
-  msgContainer.appendChild(indicator);
-  msgContainer.scrollTop = msgContainer.scrollHeight;
+  if (indicator) indicator.style.display = 'flex';
+  if (msgContainer && indicator) {
+    msgContainer.appendChild(indicator);
+    msgContainer.scrollTop = msgContainer.scrollHeight;
+  }
+
   
   const context = buildSimulatedAIContext(text);
   
   setTimeout(() => {
-    indicator.style.display = 'none';
+    if (indicator) indicator.style.display = 'none';
     appendMessage('ai', context);
+
     saveChatMessage('ai', context);
   }, 1500 + Math.random() * 1000);
 }
@@ -2644,10 +2681,10 @@ window.addEventListener('online',  () => {
 });
 
 function showOfflineBanner(show) {
-  const banner = document.getElementById('offlineBanner');
-  banner.style.display = show ? 'block' : 'none';
+  safeShow('offlineBanner', show ? 'block' : 'none');
   if(show) haptic('warning');
 }
+
 
 async function flushOfflineQueue() {
   const queue = JSON.parse(localStorage.getItem('flowx_offline_queue') || '[]');
@@ -2677,10 +2714,12 @@ window.addEventListener('beforeinstallprompt', (e) => {
   // Show install banner after 30s on landing page
   if (!window.matchMedia('(display-mode: standalone)').matches) {
     setTimeout(() => {
-         if(document.getElementById('landingPage').style.display !== 'none') {
-             document.getElementById('installBanner').style.display = 'flex';
+         const lp = document.getElementById('landing-page');
+         if (lp && lp.style.display !== 'none') {
+             safeShow('installBanner', 'flex');
          }
     }, 30000);
+
   }
 });
 
@@ -2697,8 +2736,9 @@ function installPWA() {
 }
 
 function dismissInstall() {
-  document.getElementById('installBanner').style.display = 'none';
+  safeHide('installBanner');
 }
+
 
 // 5. PIN Lock Logic
 let currentPin = '';
@@ -2708,9 +2748,10 @@ let lastActivity = Date.now();
 function checkPinLock() {
   const savedPin = localStorage.getItem('flowx_app_pin');
   if (savedPin) {
-    document.getElementById('pinLockOverlay').style.display = 'flex';
+    safeShow('pinLockOverlay', 'flex');
   }
 }
+
 
 function inputPin(num) {
   if (Date.now() < pinLockout) {
@@ -2731,11 +2772,12 @@ function verifyPin() {
   const savedPin = localStorage.getItem('flowx_app_pin');
   // Simple check for demo/MVP
   if (currentPin === savedPin) {
-    document.getElementById('pinLockOverlay').style.display = 'none';
+    safeHide('pinLockOverlay');
     currentPin = '';
     updatePinDots();
     haptic('success');
   } else {
+
     handlePinFailure();
   }
 }
@@ -2780,8 +2822,9 @@ function updatePinDots() {
 
 function closePinLock() {
     // If no pin set, just close
-    if(!localStorage.getItem('flowx_app_pin')) document.getElementById('pinLockOverlay').style.display = 'none';
+    if(!localStorage.getItem('flowx_app_pin')) safeHide('pinLockOverlay');
 }
+
 
 // Inactivity auto-lock
 setInterval(() => {
@@ -2862,9 +2905,11 @@ function setupLongPress() {
 }
 
 function enterBulkMode() {
-    document.getElementById('view-transactions').classList.add('bulk-mode');
-    document.getElementById('bulkActionBar').style.display = 'flex';
+    const vt = document.getElementById('view-transactions');
+    if (vt) vt.classList.add('bulk-mode');
+    safeShow('bulkActionBar', 'flex');
 }
+
 
 // Initialization Hooks
 const originalInit = window.onload;
