@@ -216,32 +216,65 @@ function showLandingPage() {
 
 
 function openAuth(mode = 'signup') {
-  const authScreen = document.getElementById('authScreen') || 
-                     document.getElementById('auth-screen') || 
-                     document.getElementById('auth-container');
-  if (authScreen) {
-    authScreen.style.display = 'flex';
-    // Switch between signin/signup tabs if tabs exist
-    if (mode === 'signin') {
-      const signinTab = document.getElementById('signinTab') || 
-                        document.querySelector('[data-tab="signin"]') ||
-                        document.getElementById('tabSignIn');
-      if (signinTab) signinTab.click();
-    } else {
-      const signupTab = document.getElementById('signupTab') || 
-                        document.querySelector('[data-tab="signup"]') ||
-                        document.getElementById('tabSignUp');
-      if (signupTab) signupTab.click();
-    }
-    setTimeout(() => {
-        authScreen.style.opacity = '1';
-        authScreen.style.pointerEvents = 'auto';
-    }, 500);
-  }
+  // Debug logs
+  console.log('openAuth called with mode:', mode);
+  console.log('Landing page el:', document.getElementById('landing-page'));
+  console.log('Auth screen search results:');
+  ['authScreen','auth-screen','auth-container','loginScreen','login-screen'].forEach(id => {
+    console.log(' -', id, ':', document.getElementById(id));
+  });
+
   // Hide landing page
   const landing = document.getElementById('landing-page');
   if (landing) landing.style.display = 'none';
+
+  // Try all possible auth screen IDs
+  const authIds = ['authScreen','auth-screen','auth-container','loginScreen','login-screen','auth-overlay','signupScreen'];
+  let authEl = null;
+  for (const id of authIds) {
+    authEl = document.getElementById(id);
+    if (authEl) break;
+  }
+
+  if (authEl) {
+    authEl.style.display = 'flex';
+    authEl.style.opacity = '1';
+    authEl.style.visibility = 'visible';
+    authEl.style.zIndex = '9999';
+    authEl.style.pointerEvents = 'auto'; // Ensure it can be clicked
+
+    // Switch tab if tabs exist
+    const signinSelectors = ['[data-tab="signin"]','#signinTab','#signin-tab','.signin-tab','[data-mode="signin"]','#tabSignIn'];
+    const signupSelectors = ['[data-tab="signup"]','#signupTab','#signup-tab','.signup-tab','[data-mode="signup"]','#tabSignUp'];
+    const selectors = mode === 'signin' ? signinSelectors : signupSelectors;
+
+    for (const sel of selectors) {
+      const tab = authEl.querySelector(sel) || document.querySelector(sel);
+      if (tab) { 
+        if (typeof window.switchAuthTab === 'function') {
+          window.switchAuthTab(mode);
+        } else {
+          tab.click(); 
+        }
+        break; 
+      }
+    }
+  } else {
+    // Fallback — if no auth screen found, reload page to trigger auth check
+    console.error('Auth screen element not found. Searched:', authIds);
+    // Try showing any modal with login form
+    const anyModal = document.querySelector('[class*="auth"],[class*="login"],[class*="signin"],[id*="auth"],[id*="login"]');
+    if (anyModal) {
+      anyModal.style.display = 'flex';
+      anyModal.style.zIndex = '9999';
+      anyModal.style.opacity = '1';
+      anyModal.style.visibility = 'visible';
+    }
+  }
 }
+
+// Expose to window so onclick works from HTML
+window.openAuth = openAuth;
 
 
 function closeAuth() {
