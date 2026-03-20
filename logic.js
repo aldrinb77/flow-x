@@ -2257,8 +2257,8 @@ function renderDesktopLanding() {
       </div>
 
       <!-- RIGHT — CSS Dashboard Mockup -->
-      <div style="perspective:1200px;animation:fadeUp 0.6s 0.3s ease both" id="hero-mockup-wrap">
-        <div id="hero-mockup" style="transform:rotateX(8deg) rotateY(-5deg) rotateZ(1deg);transform-origin:center center;transition:transform 0.6s ease;background:rgba(13,16,23,0.9);border:1px solid rgba(255,255,255,0.08);border-radius:20px;padding:20px;box-shadow:0 40px 120px rgba(0,0,0,0.6);position:relative">
+      <div style="perspective:1200px;animation:fadeUp 0.6s 0.3s ease both;pointer-events:none;" id="hero-mockup-wrap">
+        <div id="hero-mockup" style="transform:rotateX(8deg) rotateY(-5deg) rotateZ(1deg);transform-origin:center center;transition:transform 0.6s ease;background:rgba(13,16,23,0.9);border:1px solid rgba(255,255,255,0.08);border-radius:20px;padding:20px;box-shadow:0 40px 120px rgba(0,0,0,0.6);position:relative;pointer-events:none;">
           <!-- Mockup header -->
           <div style="display:flex;align-items:center;gap:8px;margin-bottom:16px;padding-bottom:12px;border-bottom:1px solid rgba(255,255,255,0.06)">
             <div style="width:8px;height:8px;border-radius:50%;background:#ff5f56"></div>
@@ -2299,9 +2299,9 @@ function renderDesktopLanding() {
           </div>
         </div>
         <!-- Floating callout bubbles -->
-        <div style="position:absolute;top:-20px;right:-30px;background:rgba(13,16,23,0.95);border:1px solid rgba(0,212,170,0.2);border-radius:12px;padding:8px 14px;font-size:12px;color:#00d4aa;white-space:nowrap;animation:floatBubble 3s ease-in-out infinite;box-shadow:0 4px 20px rgba(0,212,170,0.1)">💰 Saved ₹4,200 this week</div>
-        <div style="position:absolute;bottom:-15px;left:-40px;background:rgba(13,16,23,0.95);border:1px solid rgba(167,139,250,0.2);border-radius:12px;padding:8px 14px;font-size:12px;color:#a78bfa;white-space:nowrap;animation:floatBubble 3s ease-in-out infinite 1s;box-shadow:0 4px 20px rgba(167,139,250,0.1)">🎯 Goal 73% complete</div>
-        <div style="position:absolute;top:50%;right:-50px;background:rgba(13,16,23,0.95);border:1px solid rgba(245,158,11,0.2);border-radius:12px;padding:8px 14px;font-size:12px;color:#f59e0b;white-space:nowrap;animation:floatBubble 3s ease-in-out infinite 2s;box-shadow:0 4px 20px rgba(245,158,11,0.1)">⚠️ Food budget at 89%</div>
+        <div style="position:absolute;top:-20px;right:-30px;background:rgba(13,16,23,0.95);border:1px solid rgba(0,212,170,0.2);border-radius:12px;padding:8px 14px;font-size:12px;color:#00d4aa;white-space:nowrap;animation:floatBubble 3s ease-in-out infinite;box-shadow:0 4px 20px rgba(0,212,170,0.1);pointer-events:none">💰 Saved ₹4,200 this week</div>
+        <div style="position:absolute;bottom:-15px;left:-40px;background:rgba(13,16,23,0.95);border:1px solid rgba(167,139,250,0.2);border-radius:12px;padding:8px 14px;font-size:12px;color:#a78bfa;white-space:nowrap;animation:floatBubble 3s ease-in-out infinite 1s;box-shadow:0 4px 20px rgba(167,139,250,0.1);pointer-events:none">🎯 Goal 73% complete</div>
+        <div style="position:absolute;top:50%;right:-50px;background:rgba(13,16,23,0.95);border:1px solid rgba(245,158,11,0.2);border-radius:12px;padding:8px 14px;font-size:12px;color:#f59e0b;white-space:nowrap;animation:floatBubble 3s ease-in-out infinite 2s;box-shadow:0 4px 20px rgba(245,158,11,0.1);pointer-events:none">⚠️ Food budget at 89%</div>
       </div>
     </section>
 
@@ -2485,7 +2485,7 @@ function renderMobileLanding() {
         AI-Powered Finance
       </div>
       <!-- Phone mockup -->
-      <div style="width:200px;height:380px;background:rgba(13,16,23,0.9);border:2px solid rgba(255,255,255,0.08);border-radius:32px;margin:0 auto 32px;overflow:hidden;position:relative;box-shadow:0 20px 60px rgba(0,0,0,0.5);animation:floatBubble 4s ease-in-out infinite">
+      <div style="width:200px;height:380px;background:rgba(13,16,23,0.9);border:2px solid rgba(255,255,255,0.08);border-radius:32px;margin:0 auto 32px;overflow:hidden;position:relative;box-shadow:0 20px 60px rgba(0,0,0,0.5);animation:floatBubble 4s ease-in-out infinite;pointer-events:none">
         <div style="background:rgba(0,0,0,0.3);height:20px;border-radius:0 0 12px 12px;width:60px;margin:0 auto 12px"></div>
         <div style="padding:12px">
           <div style="font-family:Outfit,sans-serif;font-size:11px;font-weight:700;color:#00d4aa;margin-bottom:10px">Good morning, Aldrin 👋</div>
@@ -2569,39 +2569,40 @@ function animateCounter(el) {
 // --- PWA & Mobile Experience Core ---
 
 // 1. Service Worker Registration (Blob URL)
-const swCode = `
-  const CACHE = 'flowx-v1';
-  const ASSETS = ['/'];
+if ('serviceWorker' in navigator && location.protocol === 'https:') {
+  const swCode = `
+    const CACHE = 'flowx-v1';
+    const ASSETS = ['/'];
 
-  self.addEventListener('install', e => {
-    e.waitUntil(caches.open(CACHE).then(c => c.addAll(ASSETS)));
-    self.skipWaiting();
-  });
+    self.addEventListener('install', e => {
+      e.waitUntil(caches.open(CACHE).then(c => c.addAll(ASSETS)));
+      self.skipWaiting();
+    });
 
-  self.addEventListener('activate', e => {
-    e.waitUntil(caches.keys().then(keys =>
-      Promise.all(keys.filter(k => k !== CACHE).map(k => caches.delete(k)))
-    ));
-    self.clients.claim();
-  });
+    self.addEventListener('activate', e => {
+      e.waitUntil(caches.keys().then(keys =>
+        Promise.all(keys.filter(k => k !== CACHE).map(k => caches.delete(k)))
+      ));
+      self.clients.claim();
+    });
 
-  self.addEventListener('fetch', e => {
-    if (e.request.method !== 'GET') return;
-    e.respondWith(
-      fetch(e.request)
-        .then(res => {
-          const clone = res.clone();
-          caches.open(CACHE).then(c => c.put(e.request, clone));
-          return res;
-        })
-        .catch(() => caches.match(e.request))
-    );
-  });
-`;
-
-const swBlob = new Blob([swCode], { type: 'application/javascript' });
-const swUrl  = URL.createObjectURL(swBlob);
-navigator.serviceWorker?.register(swUrl);
+    self.addEventListener('fetch', e => {
+      if (e.request.method !== 'GET') return;
+      e.respondWith(
+        fetch(e.request)
+          .then(res => {
+            const clone = res.clone();
+            caches.open(CACHE).then(c => c.put(e.request, clone));
+            return res;
+          })
+          .catch(() => caches.match(e.request))
+      );
+    });
+  `;
+  const swBlob = new Blob([swCode], {type:'application/javascript'});
+  const swUrl  = URL.createObjectURL(swBlob);
+  navigator.serviceWorker.register(swUrl).catch(()=>{});
+}
 
 // 2. Haptic Feedback Utility
 function haptic(type = 'light') {
