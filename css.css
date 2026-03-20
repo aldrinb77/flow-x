@@ -1109,3 +1109,21 @@ textarea.form-control { resize: vertical; min-height: 90px; }
 [style*="position:fixed"][style*="z-index: 0"] {
   pointer-events: none !important;
 }
+
+@media (max-width: 768px) {
+  #hero-mockup-wrap,
+  #hero-mockup,
+  [id="hero-mockup-wrap"] {
+    display: none !important;
+  }
+
+  .hero-grid,
+  .hero-two-col {
+    grid-template-columns: 1fr !important;
+  }
+
+  .hero-right,
+  .hero-visual {
+    display: none !important;
+  }
+}

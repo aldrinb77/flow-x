@@ -2257,7 +2257,7 @@ function renderDesktopLanding() {
       </div>
 
       <!-- RIGHT — CSS Dashboard Mockup -->
-      <div style="perspective:1200px;animation:fadeUp 0.6s 0.3s ease both;pointer-events:none;" id="hero-mockup-wrap">
+      <div style="perspective:1200px;animation:fadeUp 0.6s 0.3s ease both;pointer-events:none;" id="hero-mockup-wrap" class="hero-visual">
         <div id="hero-mockup" style="transform:rotateX(8deg) rotateY(-5deg) rotateZ(1deg);transform-origin:center center;transition:transform 0.6s ease;background:rgba(13,16,23,0.9);border:1px solid rgba(255,255,255,0.08);border-radius:20px;padding:20px;box-shadow:0 40px 120px rgba(0,0,0,0.6);position:relative;pointer-events:none;">
           <!-- Mockup header -->
           <div style="display:flex;align-items:center;gap:8px;margin-bottom:16px;padding-bottom:12px;border-bottom:1px solid rgba(255,255,255,0.06)">
